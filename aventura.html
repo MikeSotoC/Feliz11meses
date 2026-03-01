@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Aventura — Felices 11 meses</title>
+
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+<style>
+/* ===============================
+   BASE
+================================*/
+body{
+  margin:0;
+  background:#0b0b0f;
+  color:#f9f9f9;
+  font-family:'VT323',monospace;
+  overflow:hidden;
+}
+
+#out-all{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.frame{
+  width:760px;
+  max-width:95%;
+  height:520px;
+  background:#111;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.section{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+}
+
+/* ===============================
+   BOTONES GENERALES
+================================*/
+.decidir{
+  display:flex;
+  gap:14px;
+  margin-top:20px;
+  visibility:hidden;
+  opacity:0;
+  transition:opacity .4s;
+}
+
+.decidir.show{
+  visibility:visible;
+  opacity:1;
+}
+
+.decidir div{
+  cursor:pointer;
+  padding:8px 14px;
+  background:rgba(255,255,255,0.05);
+  border-radius:6px;
+  transition:.2s;
+}
+
+.decidir div:hover{
+  transform:translateY(-6px);
+}
+
+h1{font-size:30px}
+h2{font-size:26px}
+h3{font-size:22px}
+
+/* ===============================
+   TYPEWRITER CURSOR
+================================*/
+.cursor{
+  display:inline-block;
+  width:8px;
+  background:#fff;
+  margin-left:4px;
+  animation:blink .8s infinite;
+}
+
+@keyframes blink{
+  50%{opacity:0;}
+}
+
+.tw{
+  visibility:hidden;
+}
+
+/* ===============================
+   PIXEL IMAGEN
+================================*/
+.pixel-container{
+  width:160px;
+  height:160px;
+  overflow:hidden;
+  margin:0 auto 15px auto;
+}
+
+.pixel-container img{
+  width:800px;
+  transform:scale(0.2);
+  transform-origin:top left;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
+
+/* ===============================
+   COFRES
+================================*/
+.cofre{
+  width:100px;
+  height:100px;
+  background:url("cofre-cerrado.png") center/cover;
+  cursor:pointer;
+  transition:transform .2s;
+}
+
+.cofre:not(.open):hover{
+  animation:shake .4s infinite;
+}
+
+@keyframes shake{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(-2px,1px)}
+  50%{transform:translate(2px,-1px)}
+  75%{transform:translate(-1px,2px)}
+  100%{transform:translate(0,0)}
+}
+
+.cofre.open{
+  animation:openPop .3s ease;
+  animation-fill-mode:forwards;
+  background:url("cofre-abierto.png") center/cover;
+  transform:scale(1.05);
+}
+
+.cofre.open.empty{
+  background:url("cofre-vacio.png") center/contain no-repeat;
+}
+
+@keyframes openPop{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+  100%{transform:scale(1.05)}
+}
+
+/* ===============================
+   COFRE 3 FOTO
+================================*/
+.foto-pareja{
+  width:220px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* ===============================
+   ANILLO
+================================*/
+.ring{
+  width:140px;
+  height:140px;
+  background:url(https://i.imgur.com/oEs8TdL.png) center/cover;
+}
+
+/* ===============================
+   FINAL ROMÁNTICO
+================================*/
+.final-box{
+  max-width:520px;
+  margin:0 auto;
+  text-align:center;
+}
+
+/* Título */
+.titulo-final{
+  color:#ff6ec7;
+  font-size:34px;
+  margin-bottom:8px;
+  letter-spacing:1px;
+  text-shadow:0 0 12px rgba(255,110,199,0.4);
+}
+
+/* Texto compacto */
+.texto-final{
+  font-size:20px;
+  line-height:1.35;
+  margin:4px 0;
+}
+
+/* Pregunta */
+.pregunta{
+  margin-top:10px;
+  font-size:24px;
+}
+
+/* Botones final */
+.botones-final{
+  position:relative;
+  margin-top:18px;
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  min-height:40px;
+}
+
+.botones-final div{
+  padding:8px 18px;
+  background:rgba(255,255,255,0.08);
+  border-radius:6px;
+  cursor:pointer;
+  transition:0.2s;
+  font-size:18px;
+}
+
+.botones-final .yes{
+  box-shadow:0 0 8px rgba(255,110,199,0.2);
+}
+
+.botones-final .yes:hover{
+  background:#ff6ec7;
+  transform:translateY(-3px);
+}
+
+/* Botón NO que se mueve */
+.noRun{
+  position:relative;
+  user-select:none;
+}
+
+/* ===============================
+   LLUVIA MASIVA (CORAZONES + CONFETI)
+================================*/
+.heart, .confetti{
+  position:fixed;
+  top:-30px;
+  pointer-events:none;
+  animation:fall linear forwards;
+}
+
+/* Corazones */
+.heart{
+  color:#ff2e63;
+  text-shadow:0 0 8px rgba(255,46,99,0.6);
+}
+
+/* Confeti */
+.confetti{
+  width:6px;
+  height:10px;
+  border-radius:2px;
+}
+
+/* Caída */
+@keyframes fall{
+  to{
+    transform:translateY(110vh) rotate(360deg);
+    opacity:0;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div id="out-all">
+<div class="frame">
+
+<div id="f1" class="section">
+  <h1 class="tw">Hay algo que quiero mostrarte…</h1>
+  <h1 class="tw">algo que nace desde lo más profundo de mi corazón.</h1>
+  <div class="decidir">
+    <div class="si">> ¡Sí!</div>
+    <div class="no">> No</div>
+  </div>
+</div>
+
+<div id="f2" class="section">
+  <h1 class="tw">No tomará mucho tiempo…</h1>
+  <h1 class="tw">pero significa mucho para mí.</h1>
+  <div class="decidir">
+    <div class="weno">> bueno...</div>
+  </div>
+</div>
+
+<div id="f3" class="section">
+  <h1 class="tw">Ven conmigo…</h1>
+  <h1 class="tw">quiero que lo veas hasta el final.</h1>
+  <div class="decidir">
+    <div class="dale">> ¡ya vamos!</div>
+  </div>
+</div>
+
+<div id="f4" class="section">
+  <h2 class="tw">Esto no es solo un juego…</h2>
+  <h2 class="tw">es una pequeña parte de lo que siento por ti.</h2>
+  <div class="decidir">
+    <div class="rega">> ¿un regalo?</div>
+  </div>
+</div>
+
+<div id="f5" class="section">
+  <h2 class="tw">Respira hondo…</h2>
+  <h2 class="tw">y deja que tu corazón guíe este momento.</h2>
+  <div class="decidir">
+    <div class="ojo">> cerrar los ojos</div>
+  </div>
+</div>
+
+<div id="f6" class="section">
+  <div class="pixel-container">
+    <img src="panda-yeli.png" alt="Yeli Pixel">
+  </div>
+	<h3 class="tw">Este soy yo, Yeli…</h3>
+	<h2 class="tw">alguien que, pase lo que pase,</h2>
+	<h2 class="tw">siempre va a querer cuidarte.</h2>
+  <div class="decidir">
+    <div class="afi">> continuar</div>
+  </div>
+</div>
+
+<div id="f7" class="section">
+  <h3 class="tw">Frente a ti hay tres cofres…</h3>
+  <h3 class="tw">cada uno guarda algo importante.</h3>
+	<h3 class="tw">El orden es 1 → 3 → 2.</h3>
+	<h3 class="tw">Deja el del medio para el final.</h3>
+  <div style="display:flex;gap:15px;margin-top:15px">
+	<div class="cofre ca1" data-open="false"></div>
+	<div class="cofre ca2" data-open="false"></div>
+	<div class="cofre ca3" data-open="false"></div>
+  </div>
+</div>
+
+<div id="fCofre1" class="section">
+  <h2 class="tw">Esta canción es para ti…</h2>
+  <h3 class="tw">Porque incluso cuando hay distancia,</h3>
+  <h3 class="tw">silencios o momentos difíciles…</h3>
+  <h3 class="tw">mi corazón siempre encuentra el camino de regreso a ti.</h3>
+
+  <div class="decidir">
+    <div class="volverCofres">> volver a los cofres</div>
+  </div>
+</div>
+
+<div id="fCofre3" class="section">
+  <img src="foto-nosotros.jpg" class="foto-pareja">
+
+  <h2 class="tw">Cada recuerdo contigo tiene un lugar especial en mi vida…</h2>
+  <h3 class="tw">Y aquí estaré…</h3>
+  <h3 class="tw">esperando crear muchos más.</h3>
+  <h3 class="tw">Porque dentro de mí,</h3>
+  <h3 class="tw">la esperanza de nuestro tiempo juntos</h3>
+  <h3 class="tw">sigue viva.</h3>
+
+  <div class="decidir">
+    <div class="volverCofres">> volver a los cofres</div>
+  </div>
+</div>
+
+<div id="f12" class="section">
+  <h3>Felices 11 meses, amor.</h3>
+  <p style="max-width:500px">
+  Hace 11 meses llegaste a mi vida y todo cambió.  
+  Gracias por cada momento, por tu cariño y por enseñarme lo que es amar de verdad.  
+  Yeli, eres mi paz, mi alegría y mi persona favorita.
+  </p>
+  <div class="decidir">
+    <div class="carta">> continuar</div>
+  </div>
+</div>
+
+<div id="f15" class="section">
+  <div class="ring"></div>
+  <h3 class="tw">Encontraste algo importante…</h3>
+  <div class="decidir">
+    <div class="anillo">> tomar</div>
+  </div>
+</div>
+
+<div id="f21" class="section">
+  <div class="final-box">
+
+    <h1 class="tw titulo-final">Gracias por volver a elegirnos 💗</h1>
+
+<p class="tw texto-final">
+Sé que hemos pasado por momentos difíciles…
+que ambos cargamos cosas,
+miedos, dudas y heridas.
+</p>
+
+<p class="tw texto-final">
+Pero si hoy estamos aquí,
+es porque lo nuestro es más fuerte que todo eso.
+</p>
+
+<p class="tw texto-final">
+Quiero que esta vez lo hagamos mejor…
+con más paciencia,
+más comprensión,
+y más amor.
+</p>
+
+<p class="tw texto-final">
+No prometo ser perfecto.
+Pero sí prometo intentarlo cada día.
+Prometo quedarme.
+Prometo cuidarte.
+Prometo no rendirme con nosotros.
+</p>
+
+<h2 class="tw">Esto recién comienza…</h2>
+    <div class="decidir botones-final">
+      <div class="yes">Sí, mi amor</div>
+      <div class="noRun">No</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="f22" class="section">
+  <div class="final-box">
+
+    <h1 class="tw titulo-final">Gracias por volver a elegirnos 💗</h1>
+
+    <p class="tw texto-final">
+      Sé que no todo ha sido fácil…
+      que la vida a veces nos puso pruebas,
+      silencios y momentos difíciles.
+    </p>
+
+    <p class="tw texto-final">
+      Pero si hoy estamos aquí…
+      es porque lo nuestro es más fuerte que todo eso.
+    </p>
+
+    <p class="tw texto-final">
+      Quiero que intentemos dar lo mejor de nosotros,
+      crecer, sanar y construir algo bonito juntos.
+    </p>
+
+    <p class="tw texto-final">
+      No prometo ser perfecto…
+      pero sí prometo quedarme,
+      cuidarte y amarte cada día.
+    </p>
+
+    <h2 class="tw">Esto recién comienza…</h2>
+
+  </div>
+</div>
+
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+/* ==============================
+   TYPEWRITER
+============================== */
+
+function initTypewriters(container){
+
+  const elements = $(container).find(".tw").toArray();
+  const buttons = $(container).find(".decidir");
+
+  // Ocultar botones al iniciar
+  buttons.removeClass("show");
+
+  let index = 0;
+
+  function typeNext(){
+
+    if(index >= elements.length){
+      // Mostrar botones cuando termine todo
+      buttons.addClass("show");
+      return;
+    }
+
+    const el = elements[index];
+    const text = el.getAttribute("data-text") || el.textContent;
+
+    el.setAttribute("data-text", text);
+    el.textContent = "";
+    el.style.visibility = "visible";
+
+    let i = 0;
+
+    function write(){
+      if(i < text.length){
+        el.textContent += text[i];
+        i++;
+        setTimeout(write, 30);
+      }else{
+        index++;
+        setTimeout(typeNext, 350);
+      }
+    }
+
+    write();
+  }
+
+  typeNext();
+}
+
+/* ==============================
+   CAMBIO DE ESCENA
+============================== */
+
+function showSection(id){
+  $(".section").hide();
+  const el = $("#"+id);
+  el.css("display","flex");
+  initTypewriters(el);
+}
+
+/* ==============================
+   MUSICA GLOBAL (persistente)
+============================== */
+
+function abrirMusica(){
+
+  const player = $("#bgMusic");
+
+  // Solo iniciar una vez
+  if(player.attr("src") === ""){
+    player.attr("src",
+      "https://www.youtube.com/embed/ZjfGiPsIPkM?autoplay=1&loop=1&playlist=ZjfGiPsIPkM"
+    );
+  }
+
+  showSection("fCofre1");
+}
+
+/* ==============================
+   COFRES
+============================== */
+
+let ordenCofres = 1; // 1 → 3 → 2
+
+$(".cofre").click(function(){
+
+  const cofre = $(this);
+
+  if(cofre.data("open") === true) return;
+
+  // Validar orden
+  if(ordenCofres === 1 && !cofre.hasClass("ca1")) return;
+  if(ordenCofres === 2 && !cofre.hasClass("ca3")) return;
+  if(ordenCofres === 3 && !cofre.hasClass("ca2")) return;
+
+  cofre.data("open", true);
+  cofre.addClass("open");
+
+  // Esperar animación de apertura
+  setTimeout(()=>{
+
+    cofre.addClass("empty");
+
+// Cofre 1
+if(cofre.hasClass("ca1")){
+  ordenCofres = 2;
+  abrirMusica();
+}
+
+// Cofre 3 → foto
+else if(cofre.hasClass("ca3")){
+  ordenCofres = 3;
+  showSection("fCofre3");
+}
+
+// Cofre 2 → final
+else if(cofre.hasClass("ca2")){
+  showSection("f21");
+}
+
+  }, 500);
+
+});
+
+/* ==============================
+   BOTONES
+============================== */
+function lluviaCorazones(){
+
+  const coloresConfeti = [
+    "#ff2e63", "#ff6ec7", "#ffd166",
+    "#06d6a0", "#4cc9f0", "#ffffff"
+  ];
+
+  // Corazones MASIVOS
+  for(let i=0;i<120;i++){
+
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.innerHTML = "❤";
+
+    heart.style.left = Math.random()*100 + "vw";
+    heart.style.fontSize = (12 + Math.random()*20) + "px";
+    heart.style.animationDuration = (4 + Math.random()*4) + "s";
+
+    document.body.appendChild(heart);
+
+    setTimeout(()=>{
+      heart.remove();
+    },8000);
+  }
+
+  // Confeti
+  for(let i=0;i<150;i++){
+
+    const confetti = document.createElement("div");
+    confetti.className = "confetti";
+
+    confetti.style.left = Math.random()*100 + "vw";
+    confetti.style.background =
+      coloresConfeti[Math.floor(Math.random()*coloresConfeti.length)];
+
+    confetti.style.animationDuration = (3 + Math.random()*4) + "s";
+
+    document.body.appendChild(confetti);
+
+    setTimeout(()=>{
+      confetti.remove();
+    },7000);
+  }
+}
+
+/* =========================
+   BOTÓN NO QUE HUYE
+========================= */
+
+$(document).on("mouseenter", ".noRun", function(){
+
+  const btn = $(this);
+  const container = btn.parent();
+
+  const maxX = container.width() - btn.width();
+  const maxY = container.height() - btn.height();
+
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
+
+  btn.css({
+    position: "absolute",
+    left: x + "px",
+    top: y + "px"
+  });
+});
+
+
+$(function(){
+
+  showSection("f1");
+
+  $(".no").click(()=>showSection("f2"));
+  $(".weno").click(()=>showSection("f1"));
+  $(".si").click(()=>showSection("f3"));
+  $(".dale").click(()=>showSection("f4"));
+  $(".rega").click(()=>showSection("f5"));
+  $(".ojo").click(()=>showSection("f6"));
+  $(".afi").click(()=>showSection("f7"));
+
+  $(".volverCofres").click(()=>showSection("f7"));
+
+  $(".carta").click(()=>showSection("f15"));
+  $(".anillo").click(()=>showSection("f21"));
+$(".yes").click(()=>{
+  showSection("f22");
+  lluviaCorazones();
+});
+
+});
+
+</script>
+<iframe
+  id="bgMusic"
+  width="0"
+  height="0"
+  src=""
+  frameborder="0"
+  allow="autoplay"
+  style="display:none">
+</iframe>
+</body>
+</html>

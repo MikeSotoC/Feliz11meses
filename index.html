@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>¿Recuerdas este juego?</title>
+<style>
+  /* ---- Estilos compactos del juego ---- */
+  :root{ --accent:#ffd966; --bg1:#1c1c1c; --bg2:#373737; }
+  html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff}
+  .wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+  h1{font-size:2rem;margin:0}
+  .subtitle{color:var(--accent);margin-top:6px;margin-bottom:14px}
+  .score{background:rgba(255,255,255,0.06);padding:10px 20px;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,0.5);margin-bottom:18px}
+  .game{background:rgba(255,255,255,0.03);padding:26px;border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,0.45);display:flex;flex-direction:column;align-items:center;min-width:320px}
+  #hands{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:18px}
+  .hand{width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:18px;background:rgba(255,255,255,0.05);box-shadow:inset 0 0 16px rgba(0,0,0,0.4);transition:transform .2s}
+  .hand.main{transform:scale(1.08)} /* mano de ella más protagonista */
+  .vs{color:var(--accent);font-weight:600}
+  .buttons{margin-top:6px;display:flex;gap:10px;justify-content:center}
+  .buttons button{width:80px;height:80px;border-radius:14px;border:none;font-size:36px;cursor:pointer;background:linear-gradient(145deg,#fff,#e6e6e6);box-shadow:0 8px 20px rgba(0,0,0,0.45);transition:transform .18s}
+  .buttons button:hover{transform:translateY(-6px) scale(1.05)}
+  #result{margin-top:12px;color:var(--accent);font-weight:600}
+  .score small{opacity:.8}
+  /* confetti canvas */
+  #confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+  /* .win pulse for round winner */
+  @keyframes pulse {0%{transform:scale(1)}50%{transform:scale(1.25);box-shadow:0 12px 28px rgba(255,215,0,0.3)}100%{transform:scale(1)}}
+  .winAnim{animation:pulse .6s ease}
+  @media (max-width:420px){ .hand{width:86px;height:86px;font-size:48px} .buttons button{width:64px;height:64px;font-size:28px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>¿Recuerdas este juego?</h1>
+    <div class="subtitle">Jugamos al mejor de 10 💛</div>
+
+    <div class="score">Tú: <strong id="userScore">0</strong> &nbsp;|&nbsp; Yo: <strong id="cpuScore">0</strong></div>
+
+    <div class="game">
+      <div id="hands">
+        <div class="hand main" id="user-hand">✊</div>
+        <div class="vs">VS</div>
+        <div class="hand bot" id="computer-hand">✊</div>
+      </div>
+
+      <div class="buttons">
+        <button aria-label="Piedra" onclick="play('rock')">✊</button>
+        <button aria-label="Papel" onclick="play('paper')">🖐️</button>
+        <button aria-label="Tijera" onclick="play('scissors')">✌️</button>
+      </div>
+
+      <div id="result">Elige una opción</div>
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+
+<script>
+/* ----- Lógica del juego ----- */
+let user = 0, cpu = 0;
+const hands = { rock: "✊", paper: "🖐️", scissors: "✌️" };
+const winPairs = { rock: "scissors", scissors: "paper", paper: "rock" };
+
+const userHandEl = document.getElementById('user-hand');
+const cpuHandEl = document.getElementById('computer-hand');
+const userScoreEl = document.getElementById('userScore');
+const cpuScoreEl = document.getElementById('cpuScore');
+const resultEl = document.getElementById('result');
+
+/* confetti setup (simple) */
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext ? canvas.getContext('2d') : null;
+function resizeCanvas(){ if(!ctx) return; canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+let confPieces = [], confAnimating=false;
+function launchConfetti(duration=2400){
+  if(!ctx) return;
+  confPieces = [];
+  for(let i=0;i<140;i++){
+    confPieces.push({
+      x: Math.random()*canvas.width,
+      y: -20 - Math.random()*200,
+      size: Math.random()*8+4,
+      vy: Math.random()*3+2,
+      vx: Math.random()*4-2,
+      color: `hsl(${Math.random()*360} 100% 60%)`,
+      rot: Math.random()*Math.PI*2
+    });
+  }
+  if(!confAnimating){ confAnimating=true; animateConfetti(); setTimeout(()=>{ confAnimating=false; confPieces=[]; if(ctx) ctx.clearRect(0,0,canvas.width,canvas.height); }, duration); }
+}
+function animateConfetti(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  confPieces.forEach(p=>{
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+    ctx.restore();
+    p.y += p.vy; p.x += p.vx; p.rot += 0.05;
+  });
+  if(confAnimating) requestAnimationFrame(animateConfetti);
+}
+
+/* efectito de rueda (burst) local usando una clase CSS para la mano */
+function applyRoundEffect(el){
+  el.classList.add('winAnim');
+  setTimeout(()=>el.classList.remove('winAnim'),650);
+}
+
+function play(choice){
+  const options=['rock','paper','scissors'];
+  const computer = options[Math.floor(Math.random()*3)];
+  userHandEl.textContent = hands[choice];
+  cpuHandEl.textContent = hands[computer];
+
+  let result = '';
+  if(choice === computer) result = 'Empate';
+  else if(winPairs[choice] === computer){ user++; result = '¡Ganaste!'; applyRoundEffect(userHandEl); }
+  else { cpu++; result = 'Perdiste'; applyRoundEffect(cpuHandEl); }
+
+  userScoreEl.textContent = user;
+  cpuScoreEl.textContent = cpu;
+  resultEl.textContent = result;
+
+  // Cuando ella llegue a 10 -> confeti + mensaje + redirigir a puerta.html
+  if(user === 10){
+    resultEl.textContent = "Sabía que ganarías... Felices 11 meses, Yeli 💛";
+    launchConfetti(2800);
+    setTimeout(()=>{ window.location.href = 'puerta.html'; }, 3000);
+  }
+
+  // si la CPU llega a 10 -> ir a intenta.html (si lo deseas)
+  if(cpu === 10){
+    resultEl.textContent = "Casi... otra vez será";
+    setTimeout(()=>{ window.location.href = 'intenta.html'; }, 1400);
+  }
+}
+</script>
+</body>
+</html>

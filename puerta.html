@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Felices 11 meses, Yeli</title>
+<style>
+  :root{--bg1:#09060a;--bg2:#201626;--accent:#ff6aa3}
+  html,body{height:100%;margin:0;font-family: 'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff}
+  .center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px;box-sizing:border-box}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));padding:36px;border-radius:18px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,0.6);max-width:720px}
+  h1{font-size:2rem;margin:0 0 6px}
+  p.lead{color:#ffdede;margin-top:6px;font-size:1.05rem}
+  .door{width:220px;height:260px;margin:18px auto;border-radius:14px;background:linear-gradient(180deg,#2a1c3a,#0f0410);box-shadow:inset 0 12px 30px rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;position:relative}
+  .knob{width:18px;height:18px;border-radius:50%;background:gold;position:absolute;right:28px;top:50%;transform:translateY(-50%);box-shadow:0 4px 8px rgba(0,0,0,0.6)}
+  .btn{display:inline-block;margin-top:12px;padding:12px 22px;border-radius:14px;border:none;background:linear-gradient(145deg,#ff7aa8,#ff4d7a);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,0.4);transition:transform .18s}
+  .btn:hover{transform:translateY(-4px)}
+  #confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+  .subtitle{color:var(--accent);margin-top:6px}
+  .smallnote{margin-top:8px;color:rgba(255,255,255,0.8);font-size:0.95rem}
+</style>
+</head>
+<body>
+  <div id="confetti"></div>
+
+  <div class="center">
+    <div class="card">
+      <h1>Felices 11 meses, amor</h1>
+      <div class="subtitle">Yeli — cada día a tu lado ha sido un regalo</div>
+      <div class="door" aria-hidden="true">
+        <div style="color:rgba(255,255,255,0.15);font-size:36px">→ ENTRAR ←</div>
+        <div class="knob"></div>
+      </div>
+
+      <p class="lead">Abriré la puerta cuando estés lista. Dentro te espera algo que preparé con todo mi cariño.</p>
+      <button class="btn" id="enterBtn">Abrir la puerta</button>
+
+      <div class="smallnote">Si no haces nada, te llevaré adentro en unos segundos...</div>
+    </div>
+  </div>
+
+<script>
+/* pequeño confeti para la puerta (duración corta) */
+const c = document.createElement('canvas');
+c.id = 'confettiCanvas';
+c.style.position='fixed'; c.style.left=0; c.style.top=0; c.style.width='100%'; c.style.height='100%'; c.style.pointerEvents='none'; c.style.zIndex=9999;
+document.body.appendChild(c);
+const ctx = c.getContext && c.getContext('2d');
+function size(){ if(!ctx) return; c.width = window.innerWidth; c.height = window.innerHeight; }
+window.addEventListener('resize', size); size();
+
+let parts=[];
+function puff(){
+  if(!ctx) return;
+  parts = [];
+  for(let i=0;i<90;i++){
+    parts.push({x:window.innerWidth/2 + (Math.random()*300-150), y:200 + Math.random()*60, vx:(Math.random()*6-3), vy:(-1.5-Math.random()*3), size:Math.random()*8+4, color:`hsl(${Math.random()*360} 100% 60%)`, rot:Math.random()*6});
+  }
+  animate();
+  setTimeout(()=>{ parts=[]; if(ctx) ctx.clearRect(0,0,c.width,c.height); },1400);
+}
+let anim=false;
+function animate(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,c.width,c.height);
+  parts.forEach(p=>{
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle=p.color;
+    ctx.fillRect(-p.size/2,-p.size/2, p.size, p.size);
+    ctx.restore();
+    p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.rot += 0.05;
+  });
+  if(parts.length) requestAnimationFrame(animate);
+}
+
+/* auto puff al cargar y botón */
+window.addEventListener('load', ()=>{ setTimeout(()=>puff(),300); setTimeout(()=>puff(),900); });
+const enterBtn = document.getElementById('enterBtn');
+enterBtn.addEventListener('click', ()=>{ enterBtn.disabled=true; enterTransition(); });
+
+function enterTransition(){
+  // pulso visual en la puerta
+  document.querySelector('.door').style.transform='scale(0.98)'; setTimeout(()=>document.querySelector('.door').style.transform='',200);
+  // luego redirige a aventura.html
+  setTimeout(()=>{ window.location.href = 'aventura.html'; },700);
+}
+
+// auto-redirigir después de 8s si no hace click
+setTimeout(()=>{ if(!enterBtn.disabled){ enterBtn.disabled=true; enterTransition(); } }, 8000);
+</script>
+</body>
+</html>
