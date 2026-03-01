@@ -204,12 +204,20 @@ const resultEl = document.getElementById('result');
 function cpuChoice(player){
   const options = ['rock','paper','scissors'];
 
-  // 65% probabilidad de perder contra ella
-  if(Math.random() < 0.65){
-    return Object.keys(winPairs).find(k => winPairs[k] === player);
+  const r = Math.random();
+
+  // 65% pierde
+  if(r < 0.65){
+    return winPairs[player];
   }
 
-  return options[Math.floor(Math.random()*3)];
+  // 20% empate
+  if(r < 0.85){
+    return player;
+  }
+
+  // 15% gana
+  return Object.keys(winPairs).find(k => winPairs[k] === player);
 }
 
 /* =========================
@@ -344,4 +352,3 @@ function play(choice){
 
 </body>
 </html>
-
