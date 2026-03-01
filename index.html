@@ -136,10 +136,25 @@ function play(choice){
 
   // si la CPU llega a 10 -> ir a intenta.html (si lo deseas)
   if(cpu === 10){
-    resultEl.textContent = "Casi... otra vez será";
-    setTimeout(()=>{ window.location.href = 'intenta.html'; }, 1400);
-  }
+  resultEl.textContent = "Casi... pero quiero que lo intentes otra vez 💛";
+
+  setTimeout(()=>{
+    // Reiniciar puntajes
+    user = 0;
+    cpu = 0;
+
+    // Actualizar pantalla
+    userScoreEl.textContent = user;
+    cpuScoreEl.textContent = cpu;
+
+    userHandEl.textContent = "✊";
+    cpuHandEl.textContent = "✊";
+
+    resultEl.textContent = "Elige una opción";
+  }, 1800);
+}
 }
 </script>
 </body>
+
 </html>
